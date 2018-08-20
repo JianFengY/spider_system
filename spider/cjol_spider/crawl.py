@@ -4,6 +4,7 @@ Created on 2018/7/17
 """
 
 import re
+import time
 from io import BytesIO
 
 import pymongo
@@ -152,6 +153,7 @@ class CjolSpider():
         }
         html = self.get_html(url, from_data, session)
         # print(html["OtherData"])
+
         resume_info = self.get_resume_info(html["OtherData"])
         # print(data)
         if not resume_info:
@@ -172,9 +174,11 @@ class CjolSpider():
                 print('登录失败！')
                 return
             for resume_id in self.get_resume_ids(html):
+                t = time.time()
                 print('正在获取简历：', resume_id)
                 resume_info = self.get_resume_info_by_id(resume_id, session)
                 if resume_info:
+                    resume_info['_id'] = int(round(t * 1000))
                     db['cjol_resume_' + self.spider_id].insert(resume_info)
             print(' === Page', page_num, 'done! ===')
         return 'success'
@@ -192,7 +196,7 @@ if __name__ == '__main__':
         "PageSize": "20",
         "Sort": "UpdateTime desc",
     }
-    spider_id = '1533799498900'
+    spider_id = '1534753856533'
     client = pymongo.MongoClient(MONGO_URL)
     db = client[MONGO_DB]
     spider = CjolSpider(form_data, spider_id)

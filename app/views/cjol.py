@@ -33,7 +33,7 @@ def get_spiders():
         result["count"] = list.count()
         result["data"] = []
         for item in list:
-            item.pop('_id')  # 解决TypeError: Object of type 'ObjectId' is not JSON serializable
+            # item.pop('_id')  # 解决TypeError: Object of type 'ObjectId' is not JSON serializable
             result["data"].append(item)
     return jsonify(result)
 
@@ -61,7 +61,7 @@ def get_resumes():
         result["count"] = list.count()
         result["data"] = []
         for item in list:
-            item.pop('_id')  # 解决TypeError: Object of type 'ObjectId' is not JSON serializable
+            # item.pop('_id')  # 解决TypeError: Object of type 'ObjectId' is not JSON serializable
             result["data"].append(item)
     return jsonify(result)
 
