@@ -117,6 +117,7 @@ if __name__ == '__main__':
     spider_id = '1534744083802'
     spider = _51JobSpider(keyword, spider_id)
     spider_data = {
+        '_id': spider_id,
         'Keyword': keyword,
         'spider_id': spider_id,
         'spider_type': '51job_job'

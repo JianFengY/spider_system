@@ -1,0 +1,70 @@
+"""
+Created on 2018/8/20
+@Author: Jeff Yang
+"""
+
+import pymongo
+from flask import Blueprint, render_template, request, jsonify
+
+from spider.settings import *
+
+job51 = Blueprint('job51', __name__)
+
+
+@job51.route('/job51')
+def main():
+    """51job爬虫"""
+    return render_template('job51.html')
+
+
+@job51.route('/job51_spider_result')
+def job51_spider_result():
+    """51job爬虫结果页面"""
+    return render_template('job51_spider_result.html')
+
+
+@job51.route('/get_spiders')
+def get_spiders():
+    """查询系统已有的爬虫"""
+    page = int(request.args.get('page'))
+    limit = int(request.args.get('limit'))
+    print("page:", page, "\nlimit:", limit)
+    client = pymongo.MongoClient(MONGO_URL)
+    db = client[MONGO_DB]
+    result = {}
+    list = db[SPIDERS_TABLE].find({"spider_type": "51job_job"}).limit(limit).skip((page - 1) * limit)
+    if list.count():
+        result["code"] = 0
+        result["msg"] = "Get spiders successfully!"
+        result["count"] = list.count()
+        result["data"] = []
+        for item in list:
+            result["data"].append(item)
+    return jsonify(result)
+
+
+@job51.route("/get_jobs")
+def get_jobs():
+    """根据爬虫ID查询结果"""
+    page = int(request.args.get('page'))
+    limit = int(request.args.get('limit'))
+    spider_id = request.args.get('spider_id')
+    print("page:", page, "\nlimit:", limit, "\nspider_id:", spider_id)
+    client = pymongo.MongoClient(MONGO_URL)
+    db = client[MONGO_DB]
+    result = {}
+    list = db['51job_' + spider_id].find().limit(limit).skip((page - 1) * limit)
+    if list.count():
+        result["code"] = 0
+        result["msg"] = "Get resume successfully!"
+        result["count"] = list.count()
+        result["data"] = []
+        for item in list:
+            item['company_name'] = item['company']['name']
+            item['company_nature'] = item['company']['nature']
+            item['company_scale'] = item['company']['scale']
+            item['company_business'] = item['company']['business']
+            item['company_profile'] = item['company']['profile']
+            item.pop('company')
+            result["data"].append(item)
+    return jsonify(result)

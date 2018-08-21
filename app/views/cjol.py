@@ -26,7 +26,7 @@ def get_spiders():
     client = pymongo.MongoClient(MONGO_URL)
     db = client[MONGO_DB]
     result = {}
-    list = db[SPIDERS_TABLE].find({ "spider_type": "cjol_resume" }).limit(limit).skip((page - 1) * limit)
+    list = db[SPIDERS_TABLE].find({"spider_type": "cjol_resume"}).limit(limit).skip((page - 1) * limit)
     if list.count():
         result["code"] = 0
         result["msg"] = "Get spiders successfully!"

@@ -200,6 +200,7 @@ if __name__ == '__main__':
     client = pymongo.MongoClient(MONGO_URL)
     db = client[MONGO_DB]
     spider = CjolSpider(form_data, spider_id)
+    form_data['_id'] = spider_id
     form_data['spider_id'] = spider_id
     form_data['spider_type'] = 'cjol_resume'
     db[SPIDERS_TABLE].insert(form_data)

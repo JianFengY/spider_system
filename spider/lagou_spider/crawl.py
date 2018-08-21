@@ -99,6 +99,7 @@ if __name__ == '__main__':
     spider_id = '1534752311040'
     spider = LagouSpider(keyword, page_num, spider_id)
     spider_data = {
+        '_id': spider_id,
         'Keyword': keyword,
         'spider_id': spider_id,
         'spider_type': 'lagou_job'

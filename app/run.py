@@ -7,26 +7,19 @@ import pymongo
 from flask import Flask, render_template, request, jsonify
 
 from app.views.cjol import cjol
+from app.views.job51 import job51
+from app.views.lagou import lagou
 
 app = Flask(__name__)
 app.register_blueprint(cjol, url_prefix='/cjol')
+app.register_blueprint(job51, url_prefix='/job51')
+app.register_blueprint(lagou, url_prefix='/lagou')
+
 
 @app.route('/')
 def index():
     """首页"""
     return render_template('index.html')
-
-
-@app.route('/51job')
-def _51job():
-    """51job爬虫"""
-    return render_template('51job.html')
-
-
-@app.route('/lagou')
-def lagou():
-    """lagou爬虫"""
-    return render_template('lagou.html')
 
 
 if __name__ == '__main__':
