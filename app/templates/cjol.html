@@ -8,6 +8,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <link rel="stylesheet" href="../static/css/layui.css" media="all">
     <!-- 注意：如果你直接复制所有代码到本地，上述css路径需要改成你本地的 -->
+    <style>
+        .layui-layer-page .layui-layer-content {
+            position: relative;
+            overflow: visible !important;
+            padding-top: 1px;
+        }
+    </style>
 </head>
 <body>
 
@@ -23,58 +30,19 @@
     </script>
 </div>
 
-<!--<form class="layui-form">-->
-    <!--<div class="layui-inline">-->
-        <!--<div class="layui-form-item">-->
-            <!--<label class="layui-form-label">关键字</label>-->
-            <!--<div class="layui-input-inline">-->
-                <!--<input type="text" name="Keyword" lay-verify="required" placeholder="请输入项目名称"-->
-                       <!--autocomplete="off"-->
-                       <!--class="layui-input"-->
-                       <!--style="width: 525px;">-->
-            <!--</div>-->
-        <!--</div>-->
-        <!--<div class="layui-form-item for_participant" id="for_participant">-->
-            <!--<label class="layui-form-label">参与者</label>-->
-            <!--<div class="layui-input-block" id="participant_node">-->
-                <!--<div class="layui-inline" style="width: 150px;">-->
-                    <!--<select name="participant1" class="participant" lay-filter="participant" lay-search>-->
-                        <!--<option value="unselected"></option>-->
-                    <!--</select>-->
-                <!--</div>-->
-                <!--<div class="layui-inline" style="width: 360px;">-->
-                    <!--<input type="text" name="task_name1" placeholder="该参与者的任务" class="layui-input">-->
-                <!--</div>-->
-            <!--</div>-->
-        <!--</div>-->
-        <!--<div class="layui-form-item">-->
-            <!--<label class="layui-form-label">项目详情</label>-->
-            <!--<div class="layui-input-inline" style="width: 525px;">-->
-                <!--<textarea name="detail" placeholder="请输入项目详情" class="layui-textarea" id="detail"></textarea>-->
-            <!--</div>-->
-        <!--</div>-->
-        <!--<div class="layui-form-item">-->
-            <!--<div class="layui-input-block" style="margin: 10px 5px 10px 371px">-->
-                <!--<button class="layui-btn" type="button" onclick="add_participant()" lay-filter="add_participant">-->
-                    <!--添加参与者-->
-                <!--</button>-->
-                <!--<button type="reset" class="layui-btn layui-btn-primary reset_form">重置</button>-->
-                <!--<button class="layui-btn" lay-submit lay-filter="create_project">提交</button>-->
-            <!--</div>-->
-        <!--</div>-->
-    <!--</div>-->
-<!--</form>-->
-
 <script src="../static/layui.js" charset="utf-8"></script>
 <!-- 注意：如果你直接复制所有代码到本地，上述js路径需要改成你本地的 -->
+<!--<script src="../static/jquery-3.1.1.min.js" charset="utf-8"></script>-->
+<!--引了jq后爬取结果放大全屏高度会只有一半-->
 <script>
     //全局变量，传到子页面
     var spiderId = "";//爬虫ID
 
-    layui.use(['element', 'table'], function () {
+    layui.use(['element', 'table', 'form'], function () {
         var $ = layui.jquery
             , element = layui.element //Tab的切换功能，切换事件监听等，需要依赖element模块
-            , table = layui.table;
+            , table = layui.table
+            , form = layui.form;
 
         //记录页码用于重载定位
         var pageNum = 0;
@@ -109,13 +77,11 @@
             var data = obj.data;
             if (obj.event === 'get_result') {
                 //获取爬虫结果
-//                $('.site-demo-active').click();
                 setSpiderId(data['spider_id'])
 //                console.log(data['spider_id'])
                 layer.open({
                     type: 2, //iframe
                     title: "爬取结果",
-                    closeBtn: false,
                     area: ['550px', '350px'],
                     shade: 0.8,
                     scrollbar: false,
@@ -138,11 +104,52 @@
                     area: ['520px', '350px'],
                     shade: 0.8,
                     scrollbar: false,
+//                    closeBtn: 0, //不显示关闭按钮
+//                    shadeClose: true, //开启遮罩关闭
                     resize: false,
                     id: 'new_spider', //设定一个id，防止重复弹出
                     btnAlign: 'c',
                     moveType: 1, //拖拽模式，0或者1
-                    content: '哈哈哈',
+                    content: '<form class="layui-form" style="margin-top: 30px;">'
+                    + '<div class="layui-inline">'
+                    + '<div class="layui-form-item">'
+                    + '<label class="layui-form-label">关键字</label>'
+                    + '<div class="layui-input-inline">'
+                    + '<input type="text" id="show_tips" onfocus="showTips()" onblur="closeTips()"'
+                    + 'name="Keyword" lay-verify="required" placeholder="请输入搜索关键字"'
+                    + 'autocomplete="off"'
+                    + 'class="layui-input"'
+                    + 'style="width: 375px;">'
+                    + '</div>'
+                    + '</div>'
+                    + '<div class="layui-form-item for_participant" id="for_participant">'
+                    + '<label class="layui-form-label">学历</label>'
+                    + '<div class="layui-input-block" id="participant_node">'
+                    + '<div class="layui-inline" style="width: 180px;">'
+                    + '<select name="MinEducationText" lay-filter="MinEducationText" lay-search>'
+                    + '<option value="10">初中</option>'
+                    + '<option value="20">高中</option>'
+//                    + '<option value="30">中技</option>'
+                    + '<option value="40">中专</option>'
+                    + '<option value="50" selected="">大专</option>'
+                    + '<option value="60">本科</option>'
+                    + '<option value="70">硕士</option>'
+                    + '<option value="80">博士</option>'
+                    + '</select>'
+                    + '</div>'
+                    + '<div class="layui-inline" style="width: 185px;">'
+                    + '<input type="text" name="MinWorkExperience" lay-verify="number" placeholder="工作年限" class="layui-input">'
+                    + '</div>'
+                    + '</div>'
+                    + '</div>'
+                    + '<div class="layui-form-item" style="width: 375px;">'
+                    + '<label class="layui-form-label">期望工作地</label>'
+                    + '<div class="layui-input-block" style="width: 375px;">'
+                    + '<input name="ExpectedLocationText" class="layui-input layui-disabled" disabled value="深圳">'
+                    + '</div>'
+                    + '</div>'
+                    + '</div>'
+                    + '</form>',
                     btn: ['确定', '取消'],
                     yes: function (index, layero) {
                         //按钮【确定】的回调
@@ -181,6 +188,8 @@
                         //return false 开启该代码可禁止点击该按钮关闭
                     }
                 });
+                form.render('select');
+
             }
         };
 
@@ -188,6 +197,7 @@
             var othis = $(this), type = othis.data('type');
             active[type] ? active[type].call(this, othis) : '';
         });
+
     });
 
     function setSpiderId(spider_id) {
@@ -197,6 +207,30 @@
     function getSpiderId() {
         return spiderId;
     }
+    var tip_index;//关键字提示框index
+
+    function showTips() {
+        tip_index = layer.tips('“空格”表示搜索包含其中一个关键词的简历；</br>' +
+            '“+”表示搜索必须包含“+”后面特定关键词的简历，“+”前必须加空格；</br>' +
+            '“-”表示搜索排除“-”后面特定关键词的简历，“-”前必须加空格；', '#show_tips', {
+            tips: [3, '#00a3a8'],
+            time: 0
+        });
+    }
+
+    function closeTips() {
+        layer.close(tip_index);
+    }
+
+    //    $("#show_tips").on("focus", function () {
+    //        alert(11111);
+    //        tip_index = layer.tips('下', '#show_tips', {
+    //            tips: 3
+    //        });
+    //    }, function () {
+    //        alert(2222);
+    //        layer.close(tip_index);
+    //    });
 
 </script>
 
