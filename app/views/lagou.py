@@ -7,6 +7,7 @@ import pymongo
 from flask import Blueprint, render_template, request, jsonify
 
 from spider.settings import *
+from spider.lagou_spider.crawl import LagouSpider
 
 lagou = Blueprint('lagou', __name__)
 
@@ -61,4 +62,47 @@ def get_jobs():
         result["data"] = []
         for item in list:
             result["data"].append(item)
+    return jsonify(result)
+
+
+@lagou.route("/add_spider", methods=['POST'])
+def add_spider():
+    """新增爬虫"""
+    client = pymongo.MongoClient(MONGO_URL)
+    db = client[MONGO_DB]
+    keyword = request.form.get('keyword')
+    spider_id = request.form.get('spider_id')
+    spider_data = {
+        '_id': spider_id,
+        'Keyword': keyword,
+        'spider_id': spider_id,
+        'spider_type': 'lagou_job',
+        'spider_status': '0'
+    }
+    db[SPIDERS_TABLE].insert(spider_data)
+    result = {
+        'code': 0,
+        'msg': 'success',
+        'data': spider_data
+    }
+    return jsonify(result)
+
+
+@lagou.route("/run_spider", methods=['POST'])
+def run_spider():
+    """运行爬虫"""
+    client = pymongo.MongoClient(MONGO_URL)
+    db = client[MONGO_DB]
+    keyword = request.form.get('keyword')
+    spider_id = request.form.get('spider_id')
+    # 修改爬虫状态
+    db[SPIDERS_TABLE].update_one({'_id': spider_id}, {'$set': {'spider_status': '1'}})
+    page_num = 30
+    spider = LagouSpider(keyword, page_num, spider_id)
+    spider.run()
+    result = {
+        'code': 0,
+        'msg': 'success',
+        'data': ''
+    }
     return jsonify(result)

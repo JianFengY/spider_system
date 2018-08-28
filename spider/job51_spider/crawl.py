@@ -11,7 +11,7 @@ from pyquery import PyQuery as pq
 from spider.settings import *
 
 
-class _51JobSpider():
+class Job51Spider():
     """51job爬虫类"""
 
     def __init__(self, keyword, spider_id):
@@ -96,6 +96,7 @@ class _51JobSpider():
         """运行爬虫"""
         client = pymongo.MongoClient(MONGO_URL)
         db = client[MONGO_DB]
+        print("共搜索出", self.page_num, "页")
         for page in range(1, self.page_num + 1):
             url = 'https://search.51job.com/list/000000,000000,0000,00,9,99,{},2,{}.html'.format(self.keyword, page)
             html = self.get_html(url)
@@ -115,7 +116,7 @@ if __name__ == '__main__':
     db = client[MONGO_DB]
     keyword = 'iot'
     spider_id = '1534744083802'
-    spider = _51JobSpider(keyword, spider_id)
+    spider = Job51Spider(keyword, spider_id)
     spider_data = {
         '_id': spider_id,
         'Keyword': keyword,

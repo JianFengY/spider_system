@@ -16,10 +16,15 @@
         <button class="layui-btn" data-type="new_spider">新增爬虫</button>
     </div>
     <table class="layui-table" id='spider_list' lay-filter="spider_list"></table>
+    {% raw %}
     <script type="text/html" id="barDemo">
-        <a class="layui-btn layui-btn-xs" lay-event="get_result">结果</a>
+        <a {{ d.spider_status== '0'
+        ? 'class="layui-btn layui-btn-warm layui-btn-xs" lay-event="run"' : 'class="layui-btn layui-btn-disabled layui-btn-xs" disabled="true"' }}>运行</a>
+        <a {{ d.spider_status== '0'
+        ? 'class="layui-btn layui-btn-disabled layui-btn-xs" disabled="true"' : 'class="layui-btn layui-btn-xs" lay-event="get_result"' }}>结果</a>
         <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
     </script>
+    {% endraw %}
 </div>
 
 <script src="../static/layui.js" charset="utf-8"></script>
@@ -61,7 +66,26 @@
         //监听工具条
         table.on('tool(spider_list)', function (obj) {
             var data = obj.data;
-            if (obj.event === 'get_result') {
+            if (obj.event === 'run') {
+                //运行爬虫
+                $.ajax({
+                    url: "{{ url_for('lagou.run_spider')}}",
+                    dataType: "json",
+                    type: "POST",
+                    data: {
+                        "keyword": data['Keyword'],
+                        "spider_id": data['spider_id'],
+                    },
+                });
+                layer.confirm("稍后可刷新页面查看结果！")
+                table.reload('spider_list', {
+                    where: { //设定异步数据接口的额外参数，任意设
+                    }
+                    , page: {
+                        curr: pageNum //重新从第 1 页开始
+                    }
+                });
+            } else if (obj.event === 'get_result') {
                 //获取爬虫结果
 //                $('.site-demo-active').click();
                 setSpiderId(data['spider_id'])
@@ -88,46 +112,48 @@
                 layer.open({
                     type: 1,
                     title: "新增爬虫",
-                    area: ['520px', '350px'],
+                    area: ['320px', '230px'],
                     shade: 0.8,
                     scrollbar: false,
                     resize: false,
                     id: 'new_spider', //设定一个id，防止重复弹出
                     btnAlign: 'c',
                     moveType: 1, //拖拽模式，0或者1
-                    content: '哈哈哈',
+                    content: '<div class="layui-form-item layui-form-text">'
+                    + '<div class="layui-input-inline">'
+                    + '<textarea id="keyword" placeholder="请输入搜索关键字" required class="layui-textarea" '
+                    + 'style="margin-left:15px; margin-top:15px; resize: none; width: 290px; height: 30px; max-width: 290px; max-height: 30px;"></textarea>'
+                    + '</div>'
+                    + '</div>',
                     btn: ['确定', '取消'],
                     yes: function (index, layero) {
                         //按钮【确定】的回调
-//                        $.ajax({
-//                            url: "/notice/update",
-//                            dataType: "json",
-//                            contentType: "application/x-www-form-urlencoded",
-//                            type: "POST",
-//                            data: {
-//                                "id": data.id,
-//                                "name": data.name,
-//                                "author": data.author,
-//                                "publishTime": data.publishTime,
-//                                "content": layedit.getContent(updateIndex)
-//                            },
-//                            success: function (data) {
-//                                layer.close(index);
-//                                if (data.msg == "success") {
-//                                    layer.confirm("修改成功！")
-//                                    table.reload('campusNotice', {
-//                                        where: { //设定异步数据接口的额外参数，任意设
-//                                        }
-//                                        , page: {
-//                                            curr: pageNum //重新从第 1 页开始
-//                                        }
-//                                    });
-//                                }
-//                            },
-//                            error: function () {
-//                                console.log("error");
-//                            }
-//                        });
+                        var timestamp = new Date().getTime();
+                        $.ajax({
+                            url: "{{ url_for('lagou.add_spider')}}",
+                            dataType: "json",
+                            type: "POST",
+                            data: {
+                                "keyword": $('#keyword').val(),
+                                "spider_id": timestamp,
+                            },
+                            success: function (data) {
+                                layer.close(index);
+                                if (data.msg == "success") {
+                                    layer.confirm("新增成功，请点击“运行”启动爬虫！（本爬虫默认爬取30页）")
+                                    table.reload('spider_list', {
+                                        where: { //设定异步数据接口的额外参数，任意设
+                                        }
+                                        , page: {
+                                            curr: pageNum //重新从第 1 页开始
+                                        }
+                                    });
+                                }
+                            },
+                            error: function () {
+                                console.log("error");
+                            }
+                        });
                     },
                     btn2: function (index, layero) {
                         //按钮【取消】的回调

@@ -4,9 +4,11 @@ Created on 2018/8/20
 """
 
 import pymongo
+import threading
 from flask import Blueprint, render_template, request, jsonify
 
 from spider.settings import *
+from spider.job51_spider.crawl import Job51Spider
 
 job51 = Blueprint('job51', __name__)
 
@@ -67,4 +69,46 @@ def get_jobs():
             item['company_profile'] = item['company']['profile']
             item.pop('company')
             result["data"].append(item)
+    return jsonify(result)
+
+
+@job51.route("/add_spider", methods=['POST'])
+def add_spider():
+    """新增爬虫"""
+    client = pymongo.MongoClient(MONGO_URL)
+    db = client[MONGO_DB]
+    keyword = request.form.get('keyword')
+    spider_id = request.form.get('spider_id')
+    spider_data = {
+        '_id': spider_id,
+        'Keyword': keyword,
+        'spider_id': spider_id,
+        'spider_type': '51job_job',
+        'spider_status': '0'
+    }
+    db[SPIDERS_TABLE].insert(spider_data)
+    result = {
+        'code': 0,
+        'msg': 'success',
+        'data': spider_data
+    }
+    return jsonify(result)
+
+
+@job51.route("/run_spider", methods=['POST'])
+def run_spider():
+    """运行爬虫"""
+    client = pymongo.MongoClient(MONGO_URL)
+    db = client[MONGO_DB]
+    keyword = request.form.get('keyword')
+    spider_id = request.form.get('spider_id')
+    # 修改爬虫状态
+    db[SPIDERS_TABLE].update_one({'_id': spider_id}, {'$set': {'spider_status': '1'}})
+    spider = Job51Spider(keyword, spider_id)
+    spider.run()
+    result = {
+        'code': 0,
+        'msg': 'success',
+        'data': ''
+    }
     return jsonify(result)

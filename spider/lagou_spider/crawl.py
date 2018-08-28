@@ -75,7 +75,7 @@ class LagouSpider():
         url = 'https://www.lagou.com/jobs/positionAjax.json?needAddtionalResult=false'
         client = pymongo.MongoClient(MONGO_URL)
         db = client[MONGO_DB]
-        for page in range(29, self.page):
+        for page in range(1, self.page):
             form_data = {
                 'first': 'false',
                 'pn': page,

@@ -4,7 +4,7 @@ Created on 2018/8/20
 """
 
 import pymongo
-import threading
+# import threading
 from flask import Blueprint, render_template, request, jsonify
 
 from spider.settings import *
@@ -162,6 +162,7 @@ def run_spider():
     spider = CjolSpider(form_data, spider_id)
     client = pymongo.MongoClient(MONGO_URL)
     db = client[MONGO_DB]
+    # 修改爬虫状态
     db[SPIDERS_TABLE].update_one({'_id': spider_id}, {'$set': {'spider_status': '1'}})
     print('running spider:', spider_id)
     spider.run()
