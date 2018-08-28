@@ -4,9 +4,11 @@ Created on 2018/8/20
 """
 
 import pymongo
+import threading
 from flask import Blueprint, render_template, request, jsonify
 
 from spider.settings import *
+from spider.cjol_spider.crawl import CjolSpider
 
 cjol = Blueprint('cjol', __name__)
 
@@ -92,4 +94,80 @@ def get_work_experiences():
         result["data"] = []
         for item in resume['work_experiences']:
             result["data"].append(item)
+    return jsonify(result)
+
+
+# def running(form_data):
+#     """返回“正在执行”的消息"""
+#     result = {
+#         'code': 0,
+#         'msg': 'running',
+#         'data': form_data
+#     }
+#     return result
+
+
+@cjol.route("/add_spider", methods=['POST'])
+def add_spider():
+    """新增爬虫"""
+    form_data = {
+        'GetListResult': 'GetListResult',
+        'PageSize': '20',
+        'Sort': 'UpdateTime desc',
+        'Keyword': request.form.get('Keyword'),
+        'MinEducationText': request.form.get('MinEducationText'),
+        'MinEducation': request.form.get('MinEducation'),
+        'MinWorkExperience': request.form.get('MinWorkExperience'),
+        'ExpectedLocationText': request.form.get('ExpectedLocationText'),
+        'ExpectedLocation': request.form.get('ExpectedLocation')
+    }
+    spider_id = request.form.get('SpiderId')
+    print(spider_id)
+    # print(form_data)
+    client = pymongo.MongoClient(MONGO_URL)
+    db = client[MONGO_DB]
+    # spider = CjolSpider(form_data, spider_id)
+    form_data['_id'] = spider_id
+    form_data['spider_id'] = spider_id
+    form_data['spider_type'] = 'cjol_resume'
+    form_data['spider_status'] = '0'  # 爬虫状态，0为新增未启动，1为已启动
+    db[SPIDERS_TABLE].insert(form_data)
+    # result = jsonify(running(form_data))
+    # t = threading.Thread(target=spider.run(), name='run_spider')
+    # t.setDaemon(False)
+    # t.start()
+    result = {
+        'code': 0,
+        'msg': 'success',
+        'data': form_data
+    }
+    return jsonify(result)
+
+
+@cjol.route("/run_spider", methods=['POST'])
+def run_spider():
+    """运行爬虫"""
+    form_data = {
+        'GetListResult': 'GetListResult',
+        'PageSize': '20',
+        'Sort': 'UpdateTime desc',
+        'Keyword': request.form.get('Keyword'),
+        'MinEducationText': request.form.get('MinEducationText'),
+        'MinEducation': request.form.get('MinEducation'),
+        'MinWorkExperience': request.form.get('MinWorkExperience'),
+        'ExpectedLocationText': request.form.get('ExpectedLocationText'),
+        'ExpectedLocation': request.form.get('ExpectedLocation')
+    }
+    spider_id = request.form.get('SpiderId')
+    spider = CjolSpider(form_data, spider_id)
+    client = pymongo.MongoClient(MONGO_URL)
+    db = client[MONGO_DB]
+    db[SPIDERS_TABLE].update_one({'_id': spider_id}, {'$set': {'spider_status': '1'}})
+    print('running spider:', spider_id)
+    spider.run()
+    result = {
+        'code': 0,
+        'msg': 'running',
+        'data': form_data
+    }
     return jsonify(result)

@@ -64,6 +64,12 @@ class CjolSpider():
         response = session.post(url, data=form_data)
         return session
 
+    def get_page_number(self, html):
+        """获取页数"""
+        doc = pq(html)
+        page_num = doc('#hid_search_page_count').attr('value')
+        return page_num
+
     def get_resume_ids(self, html):
         """获取简历编号"""
         doc = pq(html)
@@ -160,28 +166,37 @@ class CjolSpider():
             return
         return resume_info
 
-    def run(self, pages):
+    def run(self):
         """运行爬虫"""
         url = "http://newrms.cjol.com/SearchEngine/List?fn=d"
         key = "0d98459a-038b-2c0e-351d-23b69f1fcd1a"
         client = pymongo.MongoClient(MONGO_URL)
         db = client[MONGO_DB]
-        session = self.get_cookies(key)
-        for page_num in range(1, pages):
-            self.form_data['PageNo'] = page_num
-            html = self.get_html(url, form_data, session)
+        login_flag = True
+        while login_flag:
+            session = self.get_cookies(key)
+            self.form_data['PageNo'] = 1
+            html = self.get_html(url, self.form_data, session)
             if '招聘管理系统登录' in html:
                 print('登录失败！')
-                return
-            for resume_id in self.get_resume_ids(html):
-                t = time.time()
-                print('正在获取简历：', resume_id)
-                resume_info = self.get_resume_info_by_id(resume_id, session)
-                if resume_info:
-                    resume_info['_id'] = int(round(t * 1000))
-                    db['cjol_resume_' + self.spider_id].insert(resume_info)
-            print(' === Page', page_num, 'done! ===')
-        return 'success'
+                continue
+            login_flag = False
+            pages = int(self.get_page_number(html))
+            print("共搜索出", pages, "页")
+            for page_num in range(1, pages + 1):
+                self.form_data['PageNo'] = page_num
+                html = self.get_html(url, self.form_data, session)
+                # if '招聘管理系统登录' in html:
+                #     print('登录失败！')
+                #     return
+                for resume_id in self.get_resume_ids(html):
+                    t = time.time()
+                    print('正在获取简历：', resume_id)
+                    resume_info = self.get_resume_info_by_id(resume_id, session)
+                    if resume_info:
+                        resume_info['_id'] = int(round(t * 1000))
+                        db['cjol_resume_' + self.spider_id].insert(resume_info)
+                print(' === Page', page_num, 'done! ===')
 
 
 if __name__ == '__main__':
@@ -204,5 +219,6 @@ if __name__ == '__main__':
     form_data['spider_id'] = spider_id
     form_data['spider_type'] = 'cjol_resume'
     db[SPIDERS_TABLE].insert(form_data)
-    while not spider.run(18):
-        spider.run(18)
+    # while not spider.run():
+    #     spider.run()
+    spider.run()

@@ -23,11 +23,15 @@
         <button class="layui-btn" data-type="new_spider">新增爬虫</button>
     </div>
     <table class="layui-table" id='spider_list' lay-filter="spider_list"></table>
+    {% raw %}
     <script type="text/html" id="barDemo">
-        <a class="layui-btn layui-btn-xs" lay-event="get_result">结果</a>
-        <!--<a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>-->
+        <a {{ d.spider_status== '0'
+        ? 'class="layui-btn layui-btn-warm layui-btn-xs" lay-event="run"' : 'class="layui-btn layui-btn-disabled layui-btn-xs" disabled="true"' }}>运行</a>
+        <a {{ d.spider_status== '0'
+        ? 'class="layui-btn layui-btn-disabled layui-btn-xs" disabled="true"' : 'class="layui-btn layui-btn-xs" lay-event="get_result"' }}>结果</a>
         <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
     </script>
+    {% endraw %}
 </div>
 
 <script src="../static/layui.js" charset="utf-8"></script>
@@ -37,7 +41,16 @@
 <script>
     //全局变量，传到子页面
     var spiderId = "";//爬虫ID
-
+    var education_dict = {
+        "10": "初中",
+        "20": "高中",
+        "30": "中技",
+        "40": "中专",
+        "50": "大专",
+        "60": "本科",
+        "70": "硕士",
+        "80": "博士"
+    };
     layui.use(['element', 'table', 'form'], function () {
         var $ = layui.jquery
             , element = layui.element //Tab的切换功能，切换事件监听等，需要依赖element模块
@@ -75,7 +88,31 @@
         //监听工具条
         table.on('tool(spider_list)', function (obj) {
             var data = obj.data;
-            if (obj.event === 'get_result') {
+            if (obj.event === 'run') {
+                //运行爬虫
+                $.ajax({
+                    url: "{{ url_for('cjol.run_spider')}}",
+                    dataType: "json",
+                    type: "POST",
+                    data: {
+                        "Keyword": data['Keyword'],
+                        "MinEducation": data['MinEducation'],
+                        "MinEducationText": data['MinEducationText'],
+                        "MinWorkExperience": data['MinWorkExperience'],
+                        "ExpectedLocationText": data['ExpectedLocationText'],
+                        "ExpectedLocation": data['ExpectedLocation'],
+                        "SpiderId": data['spider_id'],
+                    },
+                });
+                layer.confirm("稍后可刷新页面查看结果！")
+                table.reload('spider_list', {
+                    where: { //设定异步数据接口的额外参数，任意设
+                    }
+                    , page: {
+                        curr: pageNum //重新从第 1 页开始
+                    }
+                });
+            } else if (obj.event === 'get_result') {
                 //获取爬虫结果
                 setSpiderId(data['spider_id'])
 //                console.log(data['spider_id'])
@@ -115,18 +152,18 @@
                     + '<div class="layui-form-item">'
                     + '<label class="layui-form-label">关键字</label>'
                     + '<div class="layui-input-inline">'
-                    + '<input type="text" id="show_tips" onfocus="showTips()" onblur="closeTips()"'
+                    + '<input type="text" id="Keyword" onfocus="showTips()" onblur="closeTips()"'
                     + 'name="Keyword" lay-verify="required" placeholder="请输入搜索关键字"'
                     + 'autocomplete="off"'
-                    + 'class="layui-input"'
+                    + 'class="layui-input show_tips"'
                     + 'style="width: 375px;">'
                     + '</div>'
                     + '</div>'
-                    + '<div class="layui-form-item for_participant" id="for_participant">'
+                    + '<div class="layui-form-item">'
                     + '<label class="layui-form-label">学历</label>'
-                    + '<div class="layui-input-block" id="participant_node">'
+                    + '<div class="layui-input-block">'
                     + '<div class="layui-inline" style="width: 180px;">'
-                    + '<select name="MinEducationText" lay-filter="MinEducationText" lay-search>'
+                    + '<select name="MinEducationText" id="MinEducationText" lay-filter="MinEducationText" lay-search>'
                     + '<option value="10">初中</option>'
                     + '<option value="20">高中</option>'
 //                    + '<option value="30">中技</option>'
@@ -138,14 +175,14 @@
                     + '</select>'
                     + '</div>'
                     + '<div class="layui-inline" style="width: 185px;">'
-                    + '<input type="text" name="MinWorkExperience" lay-verify="number" placeholder="工作年限" class="layui-input">'
+                    + '<input type="text" name="MinWorkExperience" id="MinWorkExperience" lay-verify="number" placeholder="工作年限" class="layui-input">'
                     + '</div>'
                     + '</div>'
                     + '</div>'
                     + '<div class="layui-form-item" style="width: 375px;">'
                     + '<label class="layui-form-label">期望工作地</label>'
                     + '<div class="layui-input-block" style="width: 375px;">'
-                    + '<input name="ExpectedLocationText" class="layui-input layui-disabled" disabled value="深圳">'
+                    + '<input name="ExpectedLocationText" id="ExpectedLocationText" class="layui-input layui-disabled" disabled value="深圳">'
                     + '</div>'
                     + '</div>'
                     + '</div>'
@@ -153,35 +190,37 @@
                     btn: ['确定', '取消'],
                     yes: function (index, layero) {
                         //按钮【确定】的回调
-//                        $.ajax({
-//                            url: "/notice/update",
-//                            dataType: "json",
-//                            contentType: "application/x-www-form-urlencoded",
-//                            type: "POST",
-//                            data: {
-//                                "id": data.id,
-//                                "name": data.name,
-//                                "author": data.author,
-//                                "publishTime": data.publishTime,
-//                                "content": layedit.getContent(updateIndex)
-//                            },
-//                            success: function (data) {
-//                                layer.close(index);
-//                                if (data.msg == "success") {
-//                                    layer.confirm("修改成功！")
-//                                    table.reload('campusNotice', {
-//                                        where: { //设定异步数据接口的额外参数，任意设
-//                                        }
-//                                        , page: {
-//                                            curr: pageNum //重新从第 1 页开始
-//                                        }
-//                                    });
-//                                }
-//                            },
-//                            error: function () {
-//                                console.log("error");
-//                            }
-//                        });
+                        var timestamp = new Date().getTime();
+                        $.ajax({
+                            url: "{{ url_for('cjol.add_spider')}}",
+                            dataType: "json",
+                            type: "POST",
+                            data: {
+                                "Keyword": $('#Keyword').val(),
+                                "MinEducation": $('#MinEducationText').val(),
+                                "MinEducationText": education_dict[$('#MinEducationText').val()],
+                                "MinWorkExperience": $('#MinWorkExperience').val(),
+                                "ExpectedLocationText": $('#ExpectedLocationText').val(),
+                                "ExpectedLocation": "2008",
+                                "SpiderId": timestamp,
+                            },
+                            success: function (data) {
+                                layer.close(index);
+                                if (data.msg == "success") {
+                                    layer.confirm("新增成功，请点击“运行”启动爬虫！")
+                                    table.reload('spider_list', {
+                                        where: { //设定异步数据接口的额外参数，任意设
+                                        }
+                                        , page: {
+                                            curr: pageNum //重新从第 1 页开始
+                                        }
+                                    });
+                                }
+                            },
+                            error: function () {
+                                console.log("error");
+                            }
+                        });
                     },
                     btn2: function (index, layero) {
                         //按钮【取消】的回调
@@ -212,7 +251,7 @@
     function showTips() {
         tip_index = layer.tips('“空格”表示搜索包含其中一个关键词的简历；</br>' +
             '“+”表示搜索必须包含“+”后面特定关键词的简历，“+”前必须加空格；</br>' +
-            '“-”表示搜索排除“-”后面特定关键词的简历，“-”前必须加空格；', '#show_tips', {
+            '“-”表示搜索排除“-”后面特定关键词的简历，“-”前必须加空格；', '.show_tips', {
             tips: [3, '#00a3a8'],
             time: 0
         });
@@ -222,9 +261,9 @@
         layer.close(tip_index);
     }
 
-    //    $("#show_tips").on("focus", function () {
+    //    $(".show_tips").on("focus", function () {
     //        alert(11111);
-    //        tip_index = layer.tips('下', '#show_tips', {
+    //        tip_index = layer.tips('下', '.show_tips', {
     //            tips: 3
     //        });
     //    }, function () {
