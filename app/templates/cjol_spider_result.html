@@ -16,7 +16,7 @@
     <script id="barDemo" type="text/html">
         <button lay-event="copy_resume_id" class="layui-btn layui-btn-normal layui-btn-xs copy_resume_id">复制ID</button>
         <button lay-event="work_experiences" class="layui-btn layui-btn-xs">工作经历</button>
-        <button lay-event="delete-resume" class="layui-btn layui-btn-danger layui-btn-xs">删除</button>
+        <button lay-event="delete_resume" class="layui-btn layui-btn-danger layui-btn-xs">删除</button>
     </script>
 </div>
 
@@ -96,6 +96,24 @@
                 });
                 layer.msg('复制成功！', {
                     time: 1000, //1s后自动关闭
+                });
+            } else if (obj.event === 'delete_resume') {
+                //删除简历
+                layer.confirm('确定删除该简历吗？', function (index) {
+                    obj.del();
+                    $.ajax({
+                        url: "{{ url_for('cjol.del_resume')}}",
+                        type: "POST",
+                        dataType: "json",
+                        data: {
+                            "spider_id": parent.getSpiderId(),
+                            "resume_id": data['resume_id']
+                        },
+                        success: function (data) {
+                            layer.confirm("删除成功！")
+                        }
+                    });
+                    layer.close(index);
                 });
             }
         });

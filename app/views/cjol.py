@@ -172,3 +172,41 @@ def run_spider():
         'data': form_data
     }
     return jsonify(result)
+
+
+@cjol.route("/del_spider", methods=['POST'])
+def del_spider():
+    """删除爬虫及爬虫结果"""
+    spider_id = request.form.get('spider_id')
+    print('delete spider:', spider_id)
+    client = pymongo.MongoClient(MONGO_URL)
+    db = client[MONGO_DB]
+    # 删除spiders的该条记录
+    db[SPIDERS_TABLE].delete_one({'spider_id': spider_id})
+    # 删除集合
+    db['cjol_resume_' + spider_id].drop()
+    result = {
+        'code': 0,
+        'msg': 'success',
+        'data': ''
+    }
+    return jsonify(result)
+
+
+@cjol.route("/del_resume", methods=['POST'])
+def del_resume():
+    """删除简历"""
+    spider_id = request.form.get('spider_id')
+    resume_id = request.form.get('resume_id')
+    print('delete resume:', resume_id)
+    client = pymongo.MongoClient(MONGO_URL)
+    db = client[MONGO_DB]
+    # 删除文档
+    x = db['cjol_resume_' + spider_id].delete_one({'resume_id': resume_id})
+    print(x.deleted_count, "个文档已删除")
+    result = {
+        'code': 0,
+        'msg': 'success',
+        'data': ''
+    }
+    return jsonify(result)
