@@ -182,7 +182,7 @@ class CjolSpider():
                 continue
             login_flag = False
             pages = int(self.get_page_number(html))
-            print("共搜索出", pages, "页")
+            print("(cjol) 共搜索出", pages, "页")
             for page_num in range(1, pages + 1):
                 self.form_data['PageNo'] = page_num
                 html = self.get_html(url, self.form_data, session)
@@ -196,7 +196,8 @@ class CjolSpider():
                     if resume_info:
                         resume_info['_id'] = int(round(t * 1000))
                         db['cjol_resume_' + self.spider_id].insert(resume_info)
-                print(' === Page', page_num, 'done! ===')
+                print(' === (cjol) Page', page_num, 'done! ===')
+        return
 
 
 if __name__ == '__main__':

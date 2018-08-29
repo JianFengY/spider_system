@@ -104,6 +104,23 @@
                     content: '{{ url_for("job51.job51_spider_result") }}',
 //                    btn: ['关闭窗口'],
                 });
+            } else if (obj.event === 'del') {
+                //删除爬虫
+                layer.confirm('确定删除该爬虫及爬虫的结果吗？', function (index) {
+                    obj.del();
+                    $.ajax({
+                        url: "{{ url_for('job51.del_spider')}}",
+                        type: "POST",
+                        dataType: "json",
+                        data: {
+                            "spider_id" : data['spider_id']
+                        },
+                        success: function (data) {
+                            layer.confirm("删除成功！")
+                        }
+                    });
+                    layer.close(index);
+                });
             }
         });
         //触发事件

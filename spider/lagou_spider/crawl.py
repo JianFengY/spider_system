@@ -75,7 +75,7 @@ class LagouSpider():
         url = 'https://www.lagou.com/jobs/positionAjax.json?needAddtionalResult=false'
         client = pymongo.MongoClient(MONGO_URL)
         db = client[MONGO_DB]
-        for page in range(1, self.page):
+        for page in range(1, self.page + 1):
             form_data = {
                 'first': 'false',
                 'pn': page,
@@ -84,11 +84,12 @@ class LagouSpider():
             data = self.get_json(url, form_data)
             for item in self.get_info(data):
                 t = time.time()
-                print('saving:', item['company_name'])
-                item['_id'] = int(round(t * 1000))
+                print('(lagou) saving:', item['company_name'])
+                item['_id'] = str(round(t * 1000))
+                item['job_id'] = str(round(t * 1000))
                 db['lagou_' + self.spider_id].insert(item)
                 time.sleep(0.1)
-            print(' === Page', page, 'done! ===')
+            print(' === (lagou) Page', page, 'done! ===')
 
 
 if __name__ == '__main__':

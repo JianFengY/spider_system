@@ -67,6 +67,22 @@
             var data = obj.data;
             if (obj.event === 'delete-info') {
                 //删除
+                layer.confirm('确定删除该条记录吗？', function (index) {
+                    obj.del();
+                    $.ajax({
+                        url: "{{ url_for('lagou.del_job')}}",
+                        type: "POST",
+                        dataType: "json",
+                        data: {
+                            "spider_id": parent.getSpiderId(),
+                            "job_id": data['job_id']
+                        },
+                        success: function (data) {
+                            layer.confirm("删除成功！")
+                        }
+                    });
+                    layer.close(index);
+                });
             }
         });
     });

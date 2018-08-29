@@ -65,6 +65,9 @@ def get_resumes():
         for item in list:
             # item.pop('_id')  # 解决TypeError: Object of type 'ObjectId' is not JSON serializable
             result["data"].append(item)
+    else:
+        result["code"] = 1
+        result["msg"] = "系统暂无爬虫数据!"
     return jsonify(result)
 
 
@@ -94,6 +97,9 @@ def get_work_experiences():
         result["data"] = []
         for item in resume['work_experiences']:
             result["data"].append(item)
+    else:
+        result["code"] = 1
+        result["msg"] = "系统暂无数据!"
     return jsonify(result)
 
 

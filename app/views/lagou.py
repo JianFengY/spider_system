@@ -41,6 +41,9 @@ def get_spiders():
         result["data"] = []
         for item in list:
             result["data"].append(item)
+    else:
+        result["code"] = 1
+        result["msg"] = "系统暂无爬虫数据!"
     return jsonify(result)
 
 
@@ -62,6 +65,9 @@ def get_jobs():
         result["data"] = []
         for item in list:
             result["data"].append(item)
+    else:
+        result["code"] = 1
+        result["msg"] = "系统暂无数据!"
     return jsonify(result)
 
 
@@ -100,6 +106,42 @@ def run_spider():
     page_num = 30
     spider = LagouSpider(keyword, page_num, spider_id)
     spider.run()
+    result = {
+        'code': 0,
+        'msg': 'success',
+        'data': ''
+    }
+    return jsonify(result)
+
+@lagou.route("/del_spider", methods=['POST'])
+def del_spider():
+    """删除爬虫及爬虫结果"""
+    spider_id = request.form.get('spider_id')
+    print('delete spider:', spider_id)
+    client = pymongo.MongoClient(MONGO_URL)
+    db = client[MONGO_DB]
+    # 删除spiders的该条记录
+    db[SPIDERS_TABLE].delete_one({'spider_id': spider_id})
+    # 删除集合
+    db['lagou_' + spider_id].drop()
+    result = {
+        'code': 0,
+        'msg': 'success',
+        'data': ''
+    }
+    return jsonify(result)
+
+@lagou.route("/del_job", methods=['POST'])
+def del_job():
+    """删除某岗位"""
+    spider_id = request.form.get('spider_id')
+    job_id = request.form.get('job_id')
+    print('delete job:', job_id)
+    client = pymongo.MongoClient(MONGO_URL)
+    db = client[MONGO_DB]
+    # 删除文档
+    x = db['lagou_' + spider_id].delete_one({'job_id': job_id})
+    print(x.deleted_count, "个文档已删除")
     result = {
         'code': 0,
         'msg': 'success',

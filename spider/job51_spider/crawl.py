@@ -96,7 +96,7 @@ class Job51Spider():
         """运行爬虫"""
         client = pymongo.MongoClient(MONGO_URL)
         db = client[MONGO_DB]
-        print("共搜索出", self.page_num, "页")
+        print("(51job) 共搜索出", self.page_num, "页")
         for page in range(1, self.page_num + 1):
             url = 'https://search.51job.com/list/000000,000000,0000,00,9,99,{},2,{}.html'.format(self.keyword, page)
             html = self.get_html(url)
@@ -105,10 +105,11 @@ class Job51Spider():
                 job_info = self.get_complete_info(job)
                 if not job_info['company']['name']:
                     continue
-                print('saving:', job_info['job_title'])
-                job_info['_id'] = int(round(t * 1000))
+                print('(51job) saving:', job_info['job_title'])
+                job_info['_id'] = str(round(t * 1000))
+                job_info['job_id'] = str(round(t * 1000))
                 db['51job_' + self.spider_id].insert(job_info)
-            print(' === Page', page, 'done! ===')
+            print(' === (51job) Page', page, 'done! ===')
 
 
 if __name__ == '__main__':
