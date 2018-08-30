@@ -134,10 +134,10 @@ class CjolSpider():
             # 在职时间
             date_range = items[2].text() if len(items) > 1 else ''
             experience_dict['date_range'] = date_range
-            # 工作简介，取前150个字
+            # 工作简介
             work_experience_describe_tr = work_experience.parent().siblings()[1]
             doc2 = pq(work_experience_describe_tr)
-            work_experience_describe = doc2('td').text()[:151]
+            work_experience_describe = doc2('td').text()
             experience_dict['work_experience_describe'] = work_experience_describe
             experiences_list.append(experience_dict)
             # print(company)

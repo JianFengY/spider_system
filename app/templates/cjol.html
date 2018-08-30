@@ -116,7 +116,7 @@
                 //获取爬虫结果
                 setSpiderId(data['spider_id'])
 //                console.log(data['spider_id'])
-                layer.open({
+                var index = layer.open({
                     type: 2, //iframe
                     title: "爬取结果",
                     area: ['550px', '350px'],
@@ -130,6 +130,7 @@
                     content: '{{ url_for("cjol.cjol_spider_result") }}',
 //                    btn: ['关闭窗口'],
                 });
+                layer.full(index); //弹出即全屏
             } else if (obj.event === 'del') {
                 //删除爬虫
                 layer.confirm('确定删除该爬虫及爬虫的结果吗？', function (index) {
@@ -139,7 +140,7 @@
                         type: "POST",
                         dataType: "json",
                         data: {
-                            "spider_id" : data['spider_id']
+                            "spider_id": data['spider_id']
                         },
                         success: function (data) {
                             layer.confirm("删除成功！")

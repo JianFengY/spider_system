@@ -46,17 +46,40 @@ def cjol_spider_result():
     return render_template('cjol_spider_result.html')
 
 
-@cjol.route("/get_resumes")
+@cjol.route("/get_resumes", methods=['POST'])
 def get_resumes():
     """根据爬虫ID查询结果"""
-    page = int(request.args.get('page'))
-    limit = int(request.args.get('limit'))
-    spider_id = request.args.get('spider_id')
+    page = int(request.form.get('page'))
+    limit = int(request.form.get('limit'))
+    spider_id = request.form.get('spider_id')
+    myquery = {}
+    work_experiences_keyword = request.form.get('work_experiences_keyword')
+    education = request.form.get('education')
+    graduate_institution = request.form.get('graduate_institution')
+    gender = request.form.get('gender')
+    age_min = request.form.get('age_min')
+    age_max = request.form.get('age_max')
+    if education is not '':
+        myquery['education'] = education
+    if graduate_institution is not '':
+        myquery['graduate_institution'] = {"$regex": ".*?" + graduate_institution + ".*?"}
+    if gender is not '':
+        myquery['gender'] = gender
+    if age_min is not '' and age_max is not '':
+        myquery['age'] = {"$gte": age_min, "$lte": age_max}
+    elif age_min is not '':
+        myquery['age'] = {"$gte": age_min}
+    elif age_max is not '':
+        myquery['age'] = {"$lte": age_max}
+    if work_experiences_keyword is not '':
+        # 查找文档里work_experiences数组中至少有一个嵌入文档的work_experience_describe包含关键字work_experiences_search的文档
+        myquery['work_experiences.work_experience_describe'] = {"$regex": ".*?" + work_experiences_keyword + ".*?"}
     print("page:", page, "\nlimit:", limit, "\nspider_id:", spider_id)
+    print("myquery", myquery)
     client = pymongo.MongoClient(MONGO_URL)
     db = client[MONGO_DB]
     result = {}
-    list = db['cjol_resume_' + spider_id].find().limit(limit).skip((page - 1) * limit)
+    list = db['cjol_resume_' + spider_id].find(myquery).limit(limit).skip((page - 1) * limit)
     if list.count():
         result["code"] = 0
         result["msg"] = "Get resume successfully!"

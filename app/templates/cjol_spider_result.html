@@ -12,6 +12,47 @@
 <body style="margin-top: 10px;margin-left: 15px;margin-right: 15px">
 
 <div class="layui-card">
+    <div class="layui-col-md10">
+        <form class="layui-form">
+            <div class="layui-inline">
+                <input class="layui-input" id="work_experiences_keyword" placeholder="工作经历关键字筛选">
+            </div>
+            <div class="layui-inline">
+                <input class="layui-input" id="graduate_institution" placeholder="毕业院校关键字筛选">
+            </div>
+            <div class="layui-inline" style="width: 150px;">
+                <select id="education" lay-filter="education" lay-search>
+                    <option value="">学历</option>
+                    <option value="初中">初中</option>
+                    <option value="高中">高中</option>
+                    <option value="中专">中专</option>
+                    <option value="大专">大专</option>
+                    <option value="本科">本科</option>
+                    <option value="硕士">硕士</option>
+                    <option value="博士">博士</option>
+                </select>
+            </div>
+            <div class="layui-inline" style="width: 150px;">
+                <select id="gender" lay-filter="gender" lay-search>
+                    <option value="">性别</option>
+                    <option value="男">男</option>
+                    <option value="女">女</option>
+                </select>
+            </div>
+            <div class="layui-input-inline" style="width: 100px;">
+                <input type="text" id="age_min" placeholder="最小年龄" lay-verify="number" autocomplete="off"
+                       class="layui-input">
+            </div>
+            -
+            <div class="layui-input-inline" style="width: 100px;">
+                <input type="text" id="age_max" placeholder="最大年龄" lay-verify="number" autocomplete="off"
+                       class="layui-input">
+            </div>
+        </form>
+    </div>
+    <div class="layui-col-md1">
+        <button id="work_experiences_btn" class="layui-btn" data-method="search">筛选</button>
+    </div>
     <table class="layui-table" id='resume_list' lay-filter="resume_list"></table>
     <script id="barDemo" type="text/html">
         <button lay-event="copy_resume_id" class="layui-btn layui-btn-normal layui-btn-xs copy_resume_id">复制ID</button>
@@ -28,11 +69,13 @@
     var resumeId = "";//简历编号
     var spiderId = "";//爬虫ID
 
-    layui.use(['element', 'table'], function () {
+    layui.use(['element', 'table', 'form'], function () {
         var $ = layui.jquery
             , element = layui.element //Tab的切换功能，切换事件监听等，需要依赖element模块
-            , table = layui.table;
+            , table = layui.table
+            , form = layui.form;
 
+        form.render('select');
         //记录页码用于重载定位
         var pageNum = 0;
         table.render({
@@ -42,12 +85,18 @@
             , where: {
                 //从父页面获取spiderId
                 "spider_id": parent.getSpiderId(),
+                "work_experiences_keyword": '',
+                "education": '',
+                "graduate_institution": '',
+                "gender": '',
+                "age_min": '',
+                "age_max": '',
             }
-            , method: 'GET'
+            , method: 'POST'
             , done: function (res, curr, count) {
                 //如果是异步请求数据方式，res即为你接口返回的信息。
                 //如果是直接赋值的方式，res即为：{data: [], count: 99} data为当前页数据、count为数据总长度
-//                pendingPageNum = curr;
+//                pageNum = curr;
             }
             , cols: [[ //标题栏
                 //{type:'checkbox',fixed: 'left'},
@@ -57,7 +106,7 @@
                 , {field: 'graduate_institution', width: 220, sort: true, title: '毕业院校', fixed: 'left'}
                 , {field: 'gender', sort: true, width: 100, title: '性别', fixed: 'left'}
                 , {field: 'age', sort: true, width: 100, title: '年龄', fixed: 'left'}
-                , {fixed: 'right', align: 'center', unresize: true, toolbar: '#barDemo'}
+                , {fixed: 'right', align: 'center', width: 288, unresize: true, toolbar: '#barDemo'}
             ]]
             , skin: 'line' //表格风格
             , even: true
@@ -117,6 +166,41 @@
                 });
             }
         });
+
+        var active = {
+            search: function () {
+                var spider_id = parent.getSpiderId();
+                var work_experiences_keyword = $("#work_experiences_keyword").val();
+                var education = $("#education").val();
+                var graduate_institution = $("#graduate_institution").val();
+                var gender = $("#gender").val();
+                var age_min = $("#age_min").val();
+                var age_max = $("#age_max").val();
+                table.reload('resume_list', {
+                    url: '/cjol/get_resumes',
+                    where: { //设定异步数据接口的额外参数，任意设
+                        spider_id: spider_id,
+                        work_experiences_keyword: work_experiences_keyword,
+                        education: education,
+                        graduate_institution: graduate_institution,
+                        gender: gender,
+                        age_min: age_min,
+                        age_max: age_max,
+                    }
+                    ,
+                    page: {
+                        curr: 1 //重新从第 1 页开始
+                    }
+                })
+                ;
+            }
+        };
+
+        $('.layui-btn').on('click', function () {
+            var othis = $(this), method = othis.data('method');
+            active[method] ? active[method].call(this, othis) : '';
+        });
+
     });
 
     function setResumeId(resume_id) {
