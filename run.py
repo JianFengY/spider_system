@@ -5,9 +5,9 @@ Created on 2018/8/20
 
 from flask import Flask, render_template
 
-from app.views.cjol import cjol
-from app.views.job51 import job51
-from app.views.lagou import lagou
+from views.cjol import cjol
+from views.job51 import job51
+from views.lagou import lagou
 
 app = Flask(__name__)
 app.register_blueprint(cjol, url_prefix='/cjol')
