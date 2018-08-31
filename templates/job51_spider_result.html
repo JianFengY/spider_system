@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>layui</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="../static/css/layui.css" media="all">
+    <!-- 注意：如果你直接复制所有代码到本地，上述css路径需要改成你本地的 -->
+</head>
+<body style="margin-top: 10px;margin-left: 15px;margin-right: 15px">
+
+<div class="layui-card">
+    <table class="layui-table" id='job_list' lay-filter="job_list"></table>
+    <script id="barDemo" type="text/html">
+        <button lay-event="delete-info" class="layui-btn layui-btn-danger layui-btn-xs">删除</button>
+    </script>
+</div>
+
+<script src="../static/layui.js" charset="utf-8"></script>
+<script src="../static/clipboard.min.js" charset="utf-8"></script>
+<!-- 注意：如果你直接复制所有代码到本地，上述js路径需要改成你本地的 -->
+<script>
+
+    layui.use(['element', 'table'], function () {
+        var $ = layui.jquery
+            , element = layui.element //Tab的切换功能，切换事件监听等，需要依赖element模块
+            , table = layui.table;
+
+        //记录页码用于重载定位
+        var pageNum = 0;
+        table.render({
+            elem: '#job_list'
+            , id: 'job_list'
+            , url: '/job51/get_jobs'
+            , where: {
+                //从父页面获取spiderId
+                "spider_id": parent.getSpiderId(),
+            }
+            , method: 'GET'
+            , done: function (res, curr, count) {
+                //如果是异步请求数据方式，res即为你接口返回的信息。
+                //如果是直接赋值的方式，res即为：{data: [], count: 99} data为当前页数据、count为数据总长度
+//                pendingPageNum = curr;
+            }
+            , cols: [[ //标题栏
+                //{type:'checkbox',fixed: 'left'},
+                {field: 'job_title', width: 130, title: '职位', sort: true, fixed: true}
+                , {field: 'work_place', width: 100, title: '工作地点', sort: true, fixed: true}
+                , {field: 'salary', title: '薪资', width: 100, sort: true, fixed: true}
+                , {field: 'company_name', width: 200, sort: true, title: '公司', fixed: 'left'}
+                , {field: 'company_nature', sort: true, width: 100, title: '公司性质', fixed: 'left'}
+                , {field: 'company_scale', sort: true, width: 100, title: '公司规模', fixed: 'left'}
+                , {field: 'company_business', sort: true, width: 180, title: '业务范围', fixed: 'left'}
+                , {field: 'company_profile', sort: true, width: 200, title: '公司简介', fixed: 'left'}
+                , {fixed: 'right', align: 'center', width: 80, unresize: true, toolbar: '#barDemo'}
+            ]]
+            , skin: 'line' //表格风格
+            , even: true
+            , page: true //是否显示分页
+            , limits: [5, 10, 15]
+            , limit: 10 //每页默认显示的数量
+        });
+
+        //监听工具条
+        table.on('tool(job_list)', function (obj) {
+            var data = obj.data;
+            if (obj.event === 'delete-info') {
+                // 删除
+                layer.confirm('确定删除该条记录吗？', function (index) {
+                    obj.del();
+                    $.ajax({
+                        url: "{{ url_for('job51.del_job')}}",
+                        type: "POST",
+                        dataType: "json",
+                        data: {
+                            "spider_id": parent.getSpiderId(),
+                            "job_id": data['job_id']
+                        },
+                        success: function (data) {
+                            layer.confirm("删除成功！")
+                        }
+                    });
+                    layer.close(index);
+                });
+            }
+        });
+    });
+
+</script>
+
+</body>
+</html>
