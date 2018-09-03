@@ -31,9 +31,10 @@ def get_spiders():
     page = int(request.args.get('page'))
     limit = int(request.args.get('limit'))
     print("page:", page, "\nlimit:", limit)
-    client = pymongo.MongoClient(MONGO_URL)
+    client = pymongo.MongoClient(
+        'mongodb://{}:{}@{}:{}/{}?authMechanism=SCRAM-SHA-1'.format(MONGO_USER, MONGO_PWD, MONGO_URL, MONGO_PORT,
+                                                                    MONGO_DB))
     db = client[MONGO_DB]
-    db.authenticate(MONGO_USER, MONGO_PWD)
     result = {}
     list = db[SPIDERS_TABLE].find({"spider_type": "51job_job"}).limit(limit).skip((page - 1) * limit)
     if list.count():

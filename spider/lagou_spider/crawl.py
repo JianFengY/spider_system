@@ -73,9 +73,10 @@ class LagouSpider():
     def run(self):
         """运行爬虫"""
         url = 'https://www.lagou.com/jobs/positionAjax.json?needAddtionalResult=false'
-        client = pymongo.MongoClient(MONGO_URL)
+        client = pymongo.MongoClient(
+            'mongodb://{}:{}@{}:{}/{}?authMechanism=SCRAM-SHA-1'.format(MONGO_USER, MONGO_PWD, MONGO_URL, MONGO_PORT,
+                                                                        MONGO_DB))
         db = client[MONGO_DB]
-        db.authenticate(MONGO_USER, MONGO_PWD)
         for page in range(1, self.page + 1):
             form_data = {
                 'first': 'false',

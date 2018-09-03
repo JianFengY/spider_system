@@ -4,6 +4,7 @@ Created on 2018/8/8
 """
 
 MONGO_URL = 'localhost'
+MONGO_PORT = '27017'
 MONGO_DB = 'spider_system'
 MONGO_USER = '******'
 MONGO_PWD = '******'
