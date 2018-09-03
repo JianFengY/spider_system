@@ -39,6 +39,9 @@ def get_spiders():
         for item in list:
             # item.pop('_id')  # 解决TypeError: Object of type 'ObjectId' is not JSON serializable
             result["data"].append(item)
+    else:
+        result["code"] = 1
+        result["msg"] = "系统暂无爬虫数据!"
     return jsonify(result)
 
 
@@ -78,7 +81,9 @@ def get_resumes():
         myquery['work_experiences.work_experience_describe'] = {"$regex": ".*?" + work_experiences_keyword + ".*?"}
     print("page:", page, "\nlimit:", limit, "\nspider_id:", spider_id)
     print("myquery", myquery)
-    client = pymongo.MongoClient(MONGO_URL)
+    client = pymongo.MongoClient(
+        'mongodb://{}:{}@{}:{}/{}?authMechanism=SCRAM-SHA-1'.format(MONGO_USER, MONGO_PWD, MONGO_URL, MONGO_PORT,
+                                                                    MONGO_DB))
     db = client[MONGO_DB]
     result = {}
     list = db['cjol_resume_' + spider_id].find(myquery).limit(limit).skip((page - 1) * limit)
@@ -110,7 +115,9 @@ def get_work_experiences():
     spider_id = request.args.get('spider_id')
     resume_id = request.args.get('resume_id')
     print("page:", page, "\nlimit:", limit, "\nspider_id:", spider_id, "\nresume_id:", resume_id)
-    client = pymongo.MongoClient(MONGO_URL)
+    client = pymongo.MongoClient(
+        'mongodb://{}:{}@{}:{}/{}?authMechanism=SCRAM-SHA-1'.format(MONGO_USER, MONGO_PWD, MONGO_URL, MONGO_PORT,
+                                                                    MONGO_DB))
     db = client[MONGO_DB]
     result = {}
     # list = db['cjol_resume_' + spider_id].find_one({ "resume_id": resume_id }).limit(limit).skip((page - 1) * limit)
@@ -155,7 +162,9 @@ def add_spider():
     spider_id = request.form.get('SpiderId')
     print(spider_id)
     # print(form_data)
-    client = pymongo.MongoClient(MONGO_URL)
+    client = pymongo.MongoClient(
+        'mongodb://{}:{}@{}:{}/{}?authMechanism=SCRAM-SHA-1'.format(MONGO_USER, MONGO_PWD, MONGO_URL, MONGO_PORT,
+                                                                    MONGO_DB))
     db = client[MONGO_DB]
     # spider = CjolSpider(form_data, spider_id)
     form_data['_id'] = spider_id
@@ -191,7 +200,9 @@ def run_spider():
     }
     spider_id = request.form.get('SpiderId')
     spider = CjolSpider(form_data, spider_id)
-    client = pymongo.MongoClient(MONGO_URL)
+    client = pymongo.MongoClient(
+        'mongodb://{}:{}@{}:{}/{}?authMechanism=SCRAM-SHA-1'.format(MONGO_USER, MONGO_PWD, MONGO_URL, MONGO_PORT,
+                                                                    MONGO_DB))
     db = client[MONGO_DB]
     # 修改爬虫状态
     db[SPIDERS_TABLE].update_one({'_id': spider_id}, {'$set': {'spider_status': '1'}})
@@ -210,7 +221,9 @@ def del_spider():
     """删除爬虫及爬虫结果"""
     spider_id = request.form.get('spider_id')
     print('delete spider:', spider_id)
-    client = pymongo.MongoClient(MONGO_URL)
+    client = pymongo.MongoClient(
+        'mongodb://{}:{}@{}:{}/{}?authMechanism=SCRAM-SHA-1'.format(MONGO_USER, MONGO_PWD, MONGO_URL, MONGO_PORT,
+                                                                    MONGO_DB))
     db = client[MONGO_DB]
     # 删除spiders的该条记录
     db[SPIDERS_TABLE].delete_one({'spider_id': spider_id})
@@ -230,7 +243,9 @@ def del_resume():
     spider_id = request.form.get('spider_id')
     resume_id = request.form.get('resume_id')
     print('delete resume:', resume_id)
-    client = pymongo.MongoClient(MONGO_URL)
+    client = pymongo.MongoClient(
+        'mongodb://{}:{}@{}:{}/{}?authMechanism=SCRAM-SHA-1'.format(MONGO_USER, MONGO_PWD, MONGO_URL, MONGO_PORT,
+                                                                    MONGO_DB))
     db = client[MONGO_DB]
     # 删除文档
     x = db['cjol_resume_' + spider_id].delete_one({'resume_id': resume_id})

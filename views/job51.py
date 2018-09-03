@@ -57,7 +57,9 @@ def get_jobs():
     limit = int(request.args.get('limit'))
     spider_id = request.args.get('spider_id')
     print("page:", page, "\nlimit:", limit, "\nspider_id:", spider_id)
-    client = pymongo.MongoClient(MONGO_URL)
+    client = pymongo.MongoClient(
+        'mongodb://{}:{}@{}:{}/{}?authMechanism=SCRAM-SHA-1'.format(MONGO_USER, MONGO_PWD, MONGO_URL, MONGO_PORT,
+                                                                    MONGO_DB))
     db = client[MONGO_DB]
     result = {}
     list = db['51job_' + spider_id].find().limit(limit).skip((page - 1) * limit)
@@ -83,7 +85,9 @@ def get_jobs():
 @job51.route("/add_spider", methods=['POST'])
 def add_spider():
     """新增爬虫"""
-    client = pymongo.MongoClient(MONGO_URL)
+    client = pymongo.MongoClient(
+        'mongodb://{}:{}@{}:{}/{}?authMechanism=SCRAM-SHA-1'.format(MONGO_USER, MONGO_PWD, MONGO_URL, MONGO_PORT,
+                                                                    MONGO_DB))
     db = client[MONGO_DB]
     keyword = request.form.get('keyword')
     spider_id = request.form.get('spider_id')
@@ -106,7 +110,9 @@ def add_spider():
 @job51.route("/run_spider", methods=['POST'])
 def run_spider():
     """运行爬虫"""
-    client = pymongo.MongoClient(MONGO_URL)
+    client = pymongo.MongoClient(
+        'mongodb://{}:{}@{}:{}/{}?authMechanism=SCRAM-SHA-1'.format(MONGO_USER, MONGO_PWD, MONGO_URL, MONGO_PORT,
+                                                                    MONGO_DB))
     db = client[MONGO_DB]
     keyword = request.form.get('keyword')
     spider_id = request.form.get('spider_id')
@@ -127,7 +133,9 @@ def del_spider():
     """删除爬虫及爬虫结果"""
     spider_id = request.form.get('spider_id')
     print('delete spider:', spider_id)
-    client = pymongo.MongoClient(MONGO_URL)
+    client = pymongo.MongoClient(
+        'mongodb://{}:{}@{}:{}/{}?authMechanism=SCRAM-SHA-1'.format(MONGO_USER, MONGO_PWD, MONGO_URL, MONGO_PORT,
+                                                                    MONGO_DB))
     db = client[MONGO_DB]
     # 删除spiders的该条记录
     db[SPIDERS_TABLE].delete_one({'spider_id': spider_id})
@@ -146,7 +154,9 @@ def del_job():
     spider_id = request.form.get('spider_id')
     job_id = request.form.get('job_id')
     print('delete job:', job_id)
-    client = pymongo.MongoClient(MONGO_URL)
+    client = pymongo.MongoClient(
+        'mongodb://{}:{}@{}:{}/{}?authMechanism=SCRAM-SHA-1'.format(MONGO_USER, MONGO_PWD, MONGO_URL, MONGO_PORT,
+                                                                    MONGO_DB))
     db = client[MONGO_DB]
     # 删除文档
     x = db['51job_' + spider_id].delete_one({'job_id': job_id})
