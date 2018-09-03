@@ -96,6 +96,7 @@ class Job51Spider():
         """运行爬虫"""
         client = pymongo.MongoClient(MONGO_URL)
         db = client[MONGO_DB]
+        db.authenticate(MONGO_USER, MONGO_PWD)
         print("(51job) 共搜索出", self.page_num, "页")
         for page in range(1, self.page_num + 1):
             url = 'https://search.51job.com/list/000000,000000,0000,00,9,99,{},2,{}.html'.format(self.keyword, page)

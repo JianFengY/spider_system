@@ -27,6 +27,7 @@ def get_spiders():
     print("page:", page, "\nlimit:", limit)
     client = pymongo.MongoClient(MONGO_URL)
     db = client[MONGO_DB]
+    db.authenticate(MONGO_USER, MONGO_PWD)
     result = {}
     list = db[SPIDERS_TABLE].find({"spider_type": "cjol_resume"}).limit(limit).skip((page - 1) * limit)
     if list.count():

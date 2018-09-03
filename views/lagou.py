@@ -32,6 +32,7 @@ def get_spiders():
     print("page:", page, "\nlimit:", limit)
     client = pymongo.MongoClient(MONGO_URL)
     db = client[MONGO_DB]
+    db.authenticate(MONGO_USER, MONGO_PWD)
     result = {}
     list = db[SPIDERS_TABLE].find({"spider_type": "lagou_job"}).limit(limit).skip((page - 1) * limit)
     if list.count():
@@ -113,6 +114,7 @@ def run_spider():
     }
     return jsonify(result)
 
+
 @lagou.route("/del_spider", methods=['POST'])
 def del_spider():
     """删除爬虫及爬虫结果"""
@@ -130,6 +132,7 @@ def del_spider():
         'data': ''
     }
     return jsonify(result)
+
 
 @lagou.route("/del_job", methods=['POST'])
 def del_job():

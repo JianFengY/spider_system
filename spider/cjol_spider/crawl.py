@@ -172,6 +172,7 @@ class CjolSpider():
         key = "0d98459a-038b-2c0e-351d-23b69f1fcd1a"
         client = pymongo.MongoClient(MONGO_URL)
         db = client[MONGO_DB]
+        db.authenticate(MONGO_USER, MONGO_PWD)
         login_flag = True
         while login_flag:
             session = self.get_cookies(key)
